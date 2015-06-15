@@ -4,7 +4,7 @@
  * @author Deviate Ltd 2014-2015 http://www.deviate.net.nz
  * @package silverstripe-advancedassets
  */
-class AdvancedSecuredFilesSiteConfig extends DataExtension {
+class AdvancedAssetsFilesSiteConfig extends DataExtension {
     
     /**
      *
@@ -28,6 +28,9 @@ class AdvancedSecuredFilesSiteConfig extends DataExtension {
     
     /**
      * 
+     * The module is comprised of advanced "components". This static provides us
+     * with an authoratative list of them.
+     * 
      * @var array
      */
     private static $allowed_components = array(
@@ -44,12 +47,12 @@ class AdvancedSecuredFilesSiteConfig extends DataExtension {
      */
     private static function is_component_enabled($component) {
         $component = strtolower(trim($component));
-        if(!in_Array($component, self::$allowed_components)) {
+        if(!in_array($component, self::$allowed_components)) {
             throw new AdvancedAssetsException('Component not allowed.');
         }
         
         $componentKey = 'component_' . $component . '_enabled';
-        return Config::inst()->get('AdvancedSecuredFilesSiteConfig', $component);
+        return Config::inst()->get('AdvancedSecuredFilesSiteConfig', $componentKey);
     }
     
     /**

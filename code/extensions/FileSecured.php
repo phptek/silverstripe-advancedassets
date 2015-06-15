@@ -35,6 +35,34 @@ class FileSecured extends DataExtension implements PermissionProvider {
      * @var array
      */
     private static $cache_permissions = array();
+    
+    /**
+     * 
+     * @return string
+     */
+    private function showButtonsSecurity() {
+        $buttons = 
+            '<li class="ss-ui-button" data-panel="whocanview">Who Can View</li>' .
+            '<li class="ss-ui-button" data-panel="whocanedit">Who Can Edit</li>';
+        
+        $componentEnabled = AdvancedAssetsFilesSiteConfig::is_security_enabled();
+        
+        return $componentEnabled ? $buttons : '';
+    }
+    
+    /**
+     * 
+     * @return string
+     */
+    private static function showButtonsEmbargoexpiry() {
+        $buttons =
+            '<li class="ss-ui-button" data-panel="embargo">Embargo</li>' .
+            '<li class="ss-ui-button" data-panel="expiry">Expiry</li>';
+        
+        $componentEnabled = AdvancedAssetsFilesSiteConfig::is_embargoexpiry_enabled();
+        
+        return $componentEnabled ? $buttons : '';
+    }
 
     /**
      * 
@@ -60,9 +88,8 @@ class FileSecured extends DataExtension implements PermissionProvider {
 
             $isFile = true;
             if(!is_a($this->owner,"Folder") && is_a($this->owner, "File")) {
-                $bottomTaskSelectionExtra =
-                    '<li class="ss-ui-button" data-panel="embargo">Embargo</li>'.
-                    '<li class="ss-ui-button" data-panel="expiry">Expiry</li>';
+                $buttonsEmbargoExpiry = $this->showButtonsSecurity();
+                $buttonsSecurity = $this->showButtonsEmbargoExpiry();
 
                 $embargoTypeField = new OptionSetField(
                     "EmbargoType", "",
@@ -93,15 +120,14 @@ class FileSecured extends DataExtension implements PermissionProvider {
                     ->setAttribute('readonly', true);
                 $expiryDatetime->getTimeField()->setAttribute('readonly', true);
             } else {
-                $bottomTaskSelectionExtra = "";
+                $buttonsEmbargoExpiry = "";
                 $isFile = false;
             }
 
             $fields->insertAfter(new LiteralField('BottomTaskSelection',
                 '<div id="Actions" class="field actions"><label class="left">Security Settings</label><ul>'.
-                $bottomTaskSelectionExtra.
-                '<li class="ss-ui-button" data-panel="whocanview">Who Can View</li>'.
-                '<li class="ss-ui-button" data-panel="whocanedit">Who Can Edit</li>'.
+                $buttonsEmbargoExpiry .
+                $buttonsSecurity .
                 '</ul></div>'),
                 "ParentID"
             );

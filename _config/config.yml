@@ -25,7 +25,7 @@ LeftAndMain:
     - SecuredFilesLeftAndMain
 SiteConfig:
   extensions:
-    - AdvancedSecuredFilesSiteConfig
+    - AdvancedAssetsFilesSiteConfig
 DBField:
   extensions:
     - SecuredFileRichLinksExtension
