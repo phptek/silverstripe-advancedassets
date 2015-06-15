@@ -35,3 +35,7 @@ Controller:
 HtmlEditorField_Toolbar:
   extensions:
     - SecuredFilesHtmlEditorField_Toolbar
+AdvancedSecuredFilesSiteConfig:
+  component_security_enabled: false;
+  component_embargoexpiry_enabled: true;
+  component_metadata_enabled: true;

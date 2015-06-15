@@ -6,17 +6,75 @@
  */
 class AdvancedSecuredFilesSiteConfig extends DataExtension {
     
+    /**
+     *
+     * @var array
+     */
     private static $db = array(
         "SecuredFileDefaultTitle"   => "Varchar",
         "SecuredFileDefaultContent" => "HTMLText",
     );
     
+    /**
+     *
+     * @var array
+     */
     private static $has_one = array(
         "LockpadImageNeedLogIn"     => "Image",
         "LockpadImageNoAccess"      => "Image",
         "LockpadImageNoLongerAvailable" => "Image",
         "LockpadImageNotYetAvailable"   => "Image",
     );
+    
+    /**
+     * 
+     * @var array
+     */
+    private static $allowed_components = array(
+        'security',
+        'embargoexpiry',
+        'metadata'
+    );
+    
+    /**
+     * 
+     * @param string $component
+     * @throws AdvancedAssetsException
+     * @return boolean
+     */
+    private static function is_component_enabled($component) {
+        $component = strtolower(trim($component));
+        if(!in_Array($component, self::$allowed_components)) {
+            throw new AdvancedAssetsException('Component not allowed.');
+        }
+        
+        $componentKey = 'component_' . $component . '_enabled';
+        return Config::inst()->get('AdvancedSecuredFilesSiteConfig', $component);
+    }
+    
+    /**
+     * 
+     * @return boolean
+     */
+    public function is_security_enabled() {
+        return self::is_component_enabled('security');
+    }
+    
+    /**
+     * 
+     * @return boolean
+     */
+    public function is_metadata_enabled() {
+        return self::is_component_enabled('metadata');
+    }
+    
+    /**
+     * 
+     * @return boolean
+     */
+    public function is_embargoexpiry_enabled() {
+        return self::is_component_enabled('embargoexpiry');
+    }
 
     /**
      * 
