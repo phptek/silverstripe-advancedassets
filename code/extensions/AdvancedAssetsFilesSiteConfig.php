@@ -5,27 +5,27 @@
  * @package silverstripe-advancedassets
  */
 class AdvancedAssetsFilesSiteConfig extends DataExtension {
-    
+
     /**
      *
      * @var array
      */
     private static $db = array(
-        "SecuredFileDefaultTitle"   => "Varchar",
+        "SecuredFileDefaultTitle" => "Varchar",
         "SecuredFileDefaultContent" => "HTMLText",
     );
-    
+
     /**
      *
      * @var array
      */
     private static $has_one = array(
-        "LockpadImageNeedLogIn"     => "Image",
-        "LockpadImageNoAccess"      => "Image",
+        "LockpadImageNeedLogIn" => "Image",
+        "LockpadImageNoAccess" => "Image",
         "LockpadImageNoLongerAvailable" => "Image",
-        "LockpadImageNotYetAvailable"   => "Image",
+        "LockpadImageNotYetAvailable" => "Image",
     );
-    
+
     /**
      * 
      * The module is comprised of advanced "components". This static provides us
@@ -38,7 +38,7 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
         'embargoexpiry',
         'metadata'
     );
-    
+
     /**
      * 
      * Determine if a component is enabled or not. By default all components are disabled
@@ -58,16 +58,16 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
         if(!in_array($component, self::$allowed_components)) {
             throw new AdvancedAssetsException('Component not allowed.');
         }
-        
+
         $componentKey = 'component_' . $component . '_enabled';
         $setting = Config::inst()->get('AdvancedAssetsFilesSiteConfig', $componentKey);
         if($setting !== null) {
-            return (bool)$setting;
+            return (bool) $setting;
         }
-        
+
         return false;
     }
-    
+
     /**
      * 
      * @return boolean
@@ -75,7 +75,7 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
     public static function is_security_enabled() {
         return self::is_component_enabled('security');
     }
-    
+
     /**
      * 
      * @return boolean
@@ -83,7 +83,7 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
     public static function is_metadata_enabled() {
         return self::is_component_enabled('metadata');
     }
-    
+
     /**
      * 
      * @return boolean
@@ -91,11 +91,11 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
     public static function is_embargoexpiry_enabled() {
         return self::is_component_enabled('embargoexpiry');
     }
-    
+
     /**
      * 
      * Generate an icon with appropriate CSS styling for the CMS for the given 
-     * component.
+     * module "component".
      * 
      * @param string $component
      * @return string
@@ -103,9 +103,9 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
     public static function component_cms_icon($component) {
         $enabled = (self::is_component_enabled($component) ? 'en' : 'dis') . 'abled';
         $title = ucfirst($component) . ' component ' . $enabled . '.';
-        return '<span class="component-icon ' 
-            . $component . ' ' 
-            . $enabled . '" title="' . $title 
+        return '<span class="component-icon '
+            . $component . ' '
+            . $enabled . '" title="' . $title
             . '">&nbsp;</span>';
     }
 
@@ -114,28 +114,31 @@ class AdvancedAssetsFilesSiteConfig extends DataExtension {
      * @param FieldList $fields
      * @return void
      */
-    public function updateCMSFields(FieldList $fields){
-        $fields->addFieldsToTab("Root.SecuredFiles", array(
-            UploadField::create('LockpadImageNeedLogIn', 'Lockpad image that shows "need to login"')
-                ->setDescription("Image that shows as default when a image is required to login to view")
-                ->setAllowedMaxFileNumber(1)
-                ->setAllowedFileCategories("image"),
-            UploadField::create('LockpadImageNoAccess', 'Lockpad image that shows "have no access"')
-                ->setDescription("Image that shows as default when a image is not viewable by current user")
-                ->setAllowedMaxFileNumber(1)
-                ->setAllowedFileCategories("image"),
-            UploadField::create('LockpadImageNoLongerAvailable', 'Lockpad image that shows "No longer available"')
-                ->setDescription("Image that shows as default when a image is expired")
-                ->setAllowedMaxFileNumber(1)
-                ->setAllowedFileCategories("image"),
-            UploadField::create('LockpadImageNotYetAvailable', 'Lockpad image that shows "Not yet available"')
-                ->setDescription("Image that shows as default when a image is embargoed")
-                ->setAllowedMaxFileNumber(1)
-                ->setAllowedFileCategories("image"),
+    public function updateCMSFields(FieldList $fields) {
+        $fields->addFieldsToTab("Root.AdvancedAssets", array(
+            UploadField::create('LockpadImageNeedLogIn', 'Icon for: "Need to login"')
+            ->setDescription("This image is shown by default when a user requests a file that requires a login to view.")
+            ->setAllowedMaxFileNumber(1)
+            ->setAllowedFileCategories("image"),
+            UploadField::create('LockpadImageNoAccess', 'Icon for: "Have no access"')
+            ->setDescription("This image is shown by default when a user requests a file that is not viewable by the current user.")
+            ->setAllowedMaxFileNumber(1)
+            ->setAllowedFileCategories("image"),
+            UploadField::create('LockpadImageNoLongerAvailable', 'Icon for: "No longer available"')
+            ->setDescription("This image is shown by default when a user requests a file that has expired.")
+            ->setAllowedMaxFileNumber(1)
+            ->setAllowedFileCategories("image"),
+            UploadField::create('LockpadImageNotYetAvailable', 'Icon for: "Not yet available"')
+            ->setDescription("This image is shown by default when a user requests a file that is embargoed.")
+            ->setAllowedMaxFileNumber(1)
+            ->setAllowedFileCategories("image"),
             TextField::create('SecuredFileDefaultTitle', "Title that shows as page title")
-                ->setDescription("Title that shows as page title in a generated page for an locked document"),
-            HtmlEditorField::create('SecuredFileDefaultContent', "Content that shows as page content")
-                ->setDescription("Content that shows as page content in a generated page for an locked document"),
+            ->setDescription("Title that shows as page title in a generated page for a locked document"),
+            $content = HtmlEditorField::create('SecuredFileDefaultContent', "Content that shows as page content")
+            ->setDescription("Content that shows as page content in a generated page for a locked document")
         ));
+        
+        $content->setRows(10);
     }
+
 }

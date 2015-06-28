@@ -1,7 +1,8 @@
 <?php
 /**
  * 
- * Attempts to excercise all the customised canXX() methods on {@link FileSecured}. 
+ * Attempts to excercise all the customised canXX() methods on {@link FileSecured}
+ * and for each of the component enabled/disabled states.
  * 
  * @author Deviate Ltd 2014-2015 http://www.deviate.net.nz
  * @package silverstripe-advancedassets
@@ -19,29 +20,80 @@ class FileSecuredTest extends SapphireTest {
     /**
      * 
      */
+    public function setUp() {
+        parent::setUp();
+        
+        Config::inst()->remove('AdvancedAssetsFilesSiteConfig', 'component_security_enabled');
+        Config::inst()->remove('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled');
+    }
+    
+    /**
+     * 
+     */
     public function testCanView() {
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-secured-files');
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertTrue($file->canView($member));
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canView($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
-        // For completeness - essentially replicate standard CMS permissions checking
         $file = $this->createUnsecuredFile();
         $this->assertTrue($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createUnsecuredFile();
+        $this->assertTrue($file->canView($member));        
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertFalse($file->canView($member));
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canView($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createUnsecuredFile();
+        $this->assertTrue($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $member = $this->objFromFixture('Member', 'can-view-secured-files');
         $file = $this->createUnsecuredFile();
         $this->assertTrue($file->canView($member));
         
         // CMS user, but without any secured-specific permissions
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertFalse($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canView($member));
      
         // Set permissions on Parent - go from there:
         // Parent is very permissive - allow
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $folder = $this->createSecuredFolder('CanViewType', 'Anyone', array(
             'ParentID' => 1
         ));
@@ -50,6 +102,31 @@ class FileSecuredTest extends SapphireTest {
             'ParentID' => $folder->ID
         ));
         $this->assertTrue($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $folder = $this->createSecuredFolder('CanViewType', 'Anyone', array(
+            'ParentID' => 1
+        ));
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
+            'ParentID' => $folder->ID
+        ));
+        $this->assertTrue($file->canView($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $folder = $this->createSecuredFolder('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1
+        ));
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
+            'ParentID' => $folder->ID
+        ));
+        $this->assertTrue($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $folder = $this->createSecuredFolder('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1
         ));
@@ -60,6 +137,8 @@ class FileSecuredTest extends SapphireTest {
         $this->assertTrue($file->canView($member));
         
         // Parent is NOT very permissive - deny
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $folder = $this->createSecuredFolder('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1
         ));
@@ -68,6 +147,17 @@ class FileSecuredTest extends SapphireTest {
             'ParentID' => $folder->ID
         ));
         $this->assertFalse($file->canView($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $folder = $this->createSecuredFolder('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1
+        ));
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
+            'ParentID' => $folder->ID
+        ));
+        $this->assertTrue($file->canView($member));
     }
     
     /**
@@ -77,29 +167,85 @@ class FileSecuredTest extends SapphireTest {
      * See testCanViewFrontByUser() and testCanViewFrontByTime() for more complete tests
      */
     public function testCanViewFront() {
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-secured-files');
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertTrue($file->canViewFront($member));
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
         // For completeness - essentially replicate standard CMS permissions checking
         $file = $this->createUnsecuredFile();
         $this->assertTrue($file->canViewFront($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        // For completeness - essentially replicate standard CMS permissions checking
+        $file = $this->createUnsecuredFile();
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertTrue($file->canViewFront($member));
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createUnsecuredFile();
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $member = $this->objFromFixture('Member', 'can-view-secured-files');
         $file = $this->createUnsecuredFile();
         $this->assertTrue($file->canViewFront($member));
         
         // CMS user, but without any secured-specific permissions
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertTrue($file->canViewFront($member));
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'Anyone');
         $this->assertTrue($file->canViewFront());
         
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'Anyone');
+        $this->assertTrue($file->canViewFront());
+        
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $member = $this->objFromFixture('Member', 'can-view-secured-files');
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
+        $this->assertTrue($file->canViewFront($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $member = $this->objFromFixture('Member', 'can-view-secured-files');
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
         $this->assertTrue($file->canViewFront($member));
@@ -109,18 +255,40 @@ class FileSecuredTest extends SapphireTest {
      * 
      */
     public function testCanViewFrontByTime() {
+        // Embargo/Expiry component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1,
             'EmbargoType' => 'None'
         ));
         $this->assertTrue($file->canViewFrontByTime());
         
+        // Embargo/Expiry component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1,
+            'EmbargoType' => 'None'
+        ));
+        $this->assertTrue($file->canViewFrontByTime());
+        
+        // Embargo/Expiry component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1,
             'EmbargoType' => 'Indefinitely'
         ));
         $this->assertFalse($file->canViewFrontByTime());
         
+        // Embargo/Expiry component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1,
+            'EmbargoType' => 'Indefinitely'
+        ));
+        $this->assertTrue($file->canViewFrontByTime());
+        
+        // Embargo/Expiry component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', true);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1,
             'EmbargoType' => 'UntilAFixedDate',
@@ -128,6 +296,26 @@ class FileSecuredTest extends SapphireTest {
         ));
         $this->assertFalse($file->canViewFrontByTime());
         
+        // Embargo/Expiry component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', false);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1,
+            'EmbargoType' => 'UntilAFixedDate',
+            'EmbargoedUntilDate' => '2030-12-01 01:00:00'
+        ));
+        $this->assertTrue($file->canViewFrontByTime());
+        
+        // Embargo/Expiry component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', true);
+        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
+            'ParentID' => 1,
+            'EmbargoType' => 'UntilAFixedDate',
+            'EmbargoedUntilDate' => '2003-12-01 01:00:00'
+        ));
+        $this->assertTrue($file->canViewFrontByTime());
+        
+        // Embargo/Expiry component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_embargoexpiry_enabled', false);
         $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers', array(
             'ParentID' => 1,
             'EmbargoType' => 'UntilAFixedDate',
@@ -140,6 +328,13 @@ class FileSecuredTest extends SapphireTest {
      * 
      */
     public function testCanViewFrontByUser() {
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $file = $this->createSecuredFile('CanViewType', 'Anyone');
+        $this->assertTrue($file->canViewFrontByUser());
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $file = $this->createSecuredFile('CanViewType', 'Anyone');
         $this->assertTrue($file->canViewFrontByUser());
         
@@ -149,6 +344,16 @@ class FileSecuredTest extends SapphireTest {
 //        $file = $this->createSecuredFile('CanViewType', 'LoggedInUsers');
 //        $this->assertFalse($file->canViewFrontByUser($member));
         
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
+        $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
+            'ParentID' => 1
+        ));
+        $this->assertTrue($file->canViewFrontByUser($member));
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $member = $this->objFromFixture('Member', 'can-view-unsecured-files-only');
         $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
             'ParentID' => 1
@@ -156,6 +361,15 @@ class FileSecuredTest extends SapphireTest {
         $this->assertTrue($file->canViewFrontByUser($member));
         
         // Permissions on Parent have not been set, assume all is OK
+        // Security component enabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', true);
+        $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
+            'ParentID' => 0
+        ));
+        $this->assertTrue($file->canViewFrontByUser());
+        
+        // Security component disabled
+        Config::inst()->update('AdvancedAssetsFilesSiteConfig', 'component_security_enabled', false);
         $file = $this->createSecuredFile('CanViewType', 'Inherit', array(
             'ParentID' => 0
         ));

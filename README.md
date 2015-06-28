@@ -21,11 +21,15 @@ will be disabled.
 
 The module's features have been broadly broken into 2 components; Embargo / Expiry and Security.
 Each of these components are able to be individually enabled or disabled via the standard SilverStripe
-YML configuration system and are _disabled_ by default. To enable them:
+YML configuration system and are _disabled_ by default. To enable them in your site's config.yml file:
 
     AdvancedAssetsFilesSiteConfig:
       component_security_enabled: true
       component_embargoexpiry_enabled: true
+
+Notes: If embargo/expiry component is disabled after having been enabled, any dates on 
+related fields will be reset to `null` after each is edited. If files remain un-edited
+after the component is disabled, they will maintain their pre-switchover values.
 
 ## Installation
 

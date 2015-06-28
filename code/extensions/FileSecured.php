@@ -260,6 +260,12 @@ class FileSecured extends DataExtension implements PermissionProvider {
      * @return boolean True or False depending on whether this document is embargoed
      */
     public function canViewFrontByTime() {
+        // If component is disabled, default to true
+        $componentEmbargo = AdvancedAssetsFilesSiteConfig::is_embargoexpiry_enabled();
+        if(!$componentEmbargo) {
+            return true;
+        }
+        
         $canViewFrontByTime = !$this->isEmbargoed() && !$this->isExpired();
         return $canViewFrontByTime;
     }
@@ -276,6 +282,12 @@ class FileSecured extends DataExtension implements PermissionProvider {
         }
         
         if($member && Permission::checkMember($member, array("ADMIN", "SECURED_FILES_VIEW_ALL"))) {
+            return true;
+        }
+        
+        // If component is disabled, default to true
+        $componentSecurity = AdvancedAssetsFilesSiteConfig::is_security_enabled();
+        if(!$componentSecurity) {
             return true;
         }
         
@@ -304,6 +316,12 @@ class FileSecured extends DataExtension implements PermissionProvider {
      * @return boolean
      */
     public function isEmbargoed() {
+        // If component is disabled, there should be no such thing as "Embargoed"
+        $componentEmbargo = AdvancedAssetsFilesSiteConfig::is_embargoexpiry_enabled();
+        if(!$componentEmbargo) {
+            return false;
+        }
+        
         $embargoUntilFixedDate = $this->owner->EmbargoType == 'UntilAFixedDate';
         $embargo = (
             !empty($this->owner->EmbargoedUntilDate) && 
@@ -326,6 +344,12 @@ class FileSecured extends DataExtension implements PermissionProvider {
      * @return boolean
      */
     public function isExpired() {
+        // If component is disabled, there should be no such thing as "Expired"
+        $componentEmbargo = AdvancedAssetsFilesSiteConfig::is_embargoexpiry_enabled();
+        if(!$componentEmbargo) {
+            return false;
+        }
+        
         $expireAtFixedDate = $this->owner->ExpiryType == 'AtAFixedDate';
         $expiredDate = (
             !empty($this->owner->ExpireAtDate) && 
@@ -418,27 +442,33 @@ class FileSecured extends DataExtension implements PermissionProvider {
             }
         }
         
-        if($this->owner->EmbargoType != 'UntilAFixedDate') {
+        // If embargo/expiry component is disabled, nullify the  & expiry fields
+        $componentEmbargo = AdvancedAssetsFilesSiteConfig::is_embargoexpiry_enabled();
+        if(!$componentEmbargo || $this->owner->EmbargoType != 'UntilAFixedDate') {
             $this->owner->EmbargoedUntilDate = null;
         }
 
-        if($this->owner->ExpiryType != 'AtAFixedDate') {
+        if(!$componentEmbargo || $this->owner->ExpiryType != 'AtAFixedDate') {
             $this->owner->ExpireAtDate = null;
         }
     }
 
     /**
      * 
+     * If permission type is changed in CMS' UI, "reset" any group-associations.
+     * 
      * @return void
      */
     public function onAfterWrite() {
-        if($this->owner->CanViewType != 'OnlyTheseUsers') {
+        // Only perform group-removals after write, if component is enabled
+        $componentSecurity = AdvancedAssetsFilesSiteConfig::is_security_enabled();
+        if($componentSecurity && $this->owner->CanViewType != 'OnlyTheseUsers') {
             $viewerGroups = $this->owner->ViewerGroups();
             if($viewerGroups && $viewerGroups->exists()) {
-                    $viewerGroups->removeAll();
+                $viewerGroups->removeAll();
             }
         }
-        if($this->owner->CanEditType != 'OnlyTheseUsers') {
+        if($componentSecurity && $this->owner->CanEditType != 'OnlyTheseUsers') {
             $editorGroups = $this->owner->EditorGroups();
             if($editorGroups && $editorGroups->exists()) {
                 $editorGroups->removeAll();
@@ -705,6 +735,12 @@ class FileSecured extends DataExtension implements PermissionProvider {
         if($member && Permission::checkMember($member, array("ADMIN", "SECURED_FILES_VIEW_ALL"))) {
             return true;
         }
+        
+        // If component is disabled, default to true
+        $componentSecurity = AdvancedAssetsFilesSiteConfig::is_security_enabled();
+        if(!$componentSecurity) {
+            return true;
+        }
 
         // check for empty spec
         if(!$this->owner->CanViewType || $this->owner->CanViewType == 'Anyone') {
@@ -780,7 +816,17 @@ class FileSecured extends DataExtension implements PermissionProvider {
         }
 
         if($this->owner->ID) {
-            // Regular canEdit logic is handled by can_edit_multiple
+            // Regular canEdit logic is handled by {@link self::can_edit_multiple()}.
+            /*
+             * can_edit_multiple() relies on the "CanEditType" property. This prop should 
+             * _only_ be available if the security component is enabled. If disabled,
+             * just return true, as we don't want to refer to "CanEditType" at all.
+             */
+            $componentSecurity = AdvancedAssetsFilesSiteConfig::is_security_enabled();
+            if(!$componentSecurity) {
+                return true;
+            }
+            
             $results = self::can_edit_multiple(array($this->owner->ID), $memberID);
 
             // If this page no longer exists in stage/live results won't contain the page.

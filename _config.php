@@ -7,6 +7,7 @@
 
 define("SECURED_FILES_MODULE_NAME", "Advanced Assets");
 define("SECURED_FILES_MODULE_DIR", "silverstripe-advancedassets");
+define("SECURED_FILES_MODULE_UPLOAD_DIR", "_securedfiles");
 
 if(!file_exists(BASE_PATH . DIRECTORY_SEPARATOR . SECURED_FILES_MODULE_DIR)) {
     $msg = "Module directory seems to be named incorrectly."

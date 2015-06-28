@@ -35,7 +35,7 @@ class SecuredAssetAdmin extends AssetAdmin implements PermissionProvider {
      *
      * @var string
      */
-    private static $menu_icon = "silverstripe-advancedassets/resource/images/padlock-gray-16x16.png";
+    private static $menu_icon = "silverstripe-advancedassets/images/icons/menu-advanced-assets-32.png";
 
     /**
      *
@@ -96,9 +96,9 @@ class SecuredAssetAdmin extends AssetAdmin implements PermissionProvider {
      * @return void
      */
     public static function instantiate() {
-        $secured_root_folder = BASE_PATH . DIRECTORY_SEPARATOR . ASSETS_DIR . DIRECTORY_SEPARATOR . "_securedfiles";
+        $secured_root_folder = BASE_PATH . DIRECTORY_SEPARATOR . ASSETS_DIR . DIRECTORY_SEPARATOR . SECURED_FILES_MODULE_UPLOAD_DIR;
         if(!is_dir($secured_root_folder)) {
-            FileSecured::find_or_make_secured("_securedfiles/Uploads");
+            FileSecured::find_or_make_secured(SECURED_FILES_MODULE_UPLOAD_DIR . DIRECTORY_SEPARATOR . 'Uploads');
         }
 
         $resource_folder = BASE_PATH . DIRECTORY_SEPARATOR . SECURED_FILES_MODULE_DIR . DIRECTORY_SEPARATOR . 'resource';
